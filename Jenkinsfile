@@ -17,24 +17,18 @@ pipeline {
         }
         stage('Stage3-Test1-Satus200') {
             steps {
-                script {                    
-                    def response = httpRequest 'http://localhost:9889/index.html'
-                    println("Status: "+response.status)
-                    println("Content: "+response.content)
-                    if (response.status == 200) {
-                        withCredentials([string(credentialsId: 'chatWebid', variable: 'TOKEN'), string(credentialsId: 'chatId', variable: 'CHAT_ID')]) {
-                            sh  ("""
-                                     curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='response code 200'
-                            """)
-                        }
-                        return
-                        } else if (response.status != 200) {
-                        withCredentials([string(credentialsId: 'chatWebid', variable: 'TOKEN'), string(credentialsId: 'chatId', variable: 'CHAT_ID')]) {
-                            sh  ("""
-                                     curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='response code not 200'
-                            """)
-                        }
-                        return
+                script {
+                    sh '''
+                        status_code=$(curl --write-out %{http_code} --silent --output /dev/null www.energomera.ru)
+                        echo "Status code: $status_code"
+
+                        if [[ $status_code -ge 200 ]]
+                        then
+                          curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='response code 200'
+                        else
+                          curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='response code not 200'
+                        fi
+                    '''
                     }
                 }
             }
@@ -42,26 +36,27 @@ pipeline {
         stage('Stage4-Test2-MD5SUM') {
             steps {
                 script {
-                    def md5 = sh (
-                         script: 'curl -s http://localhost:9889/index.html | md5sum | awk \'{print $1 " index.html"}\' | md5sum -c | awk \'{print $2}\'',
-                         returnStdout: true
-                    ).trim()
-                    println ('Status: ' + md5)
-                    if (md5 == 'OK') {
-                        withCredentials([string(credentialsId: 'chatWebid', variable: 'TOKEN'), string(credentialsId: 'chatId', variable: 'CHAT_ID')]) {
-                            sh  ("""
-                                     curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='MD5 OK'
-                            """)
-                        }
-                        return
-                     } else {
-                        withCredentials([string(credentialsId: 'chatWebid', variable: 'TOKEN'), string(credentialsId: 'chatId', variable: 'CHAT_ID')]) {
-                            sh  ("""
-                                     curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='MD5 not OK'
-                            """)
-                        }
-                        return
-                    }
+                    sh '''
+                        online_md5="$(curl -sL http://localhost:9889/index.html | md5sum | cut -d ' ' -f 1)"
+                        local_md5="$(md5sum "index.html" | cut -d ' ' -f 1)"
+
+                        echo "Online MD5: $online_md5"
+                        echo "Local MD5: $local_md5"
+
+                        if [[ $online_md5 = $local_md5 ]]
+                        then
+                            echo "hurray, they are equal!"
+                        else
+                         exit 0
+                        fi
+
+                        if [[ $status_code -ge 200 ]]
+                        then
+                          curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='MD5 OK'
+                        else
+                          curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='MD5 not OK'
+                        fi
+                    '''
                 }
             }
         }
