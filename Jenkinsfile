@@ -90,10 +90,17 @@ pipeline {
             }
         }
         failure {
-            withCredentials([string(credentialsId: 'chatWebid', variable: 'TOKEN'), string(credentialsId: 'chatId', variable: 'CHAT_ID')]) {
-                sh  ("""
+            steps {
+                sh '''
+                    docker container stop devops-pw11
+                    docker container rm devops-pw11
+                    docker image rm devops/pw11_nginx
+                '''
+                withCredentials([string(credentialsId: 'chatWebid', variable: 'TOKEN'), string(credentialsId: 'chatId', variable: 'CHAT_ID')]) {
+                    sh  ("""
                 curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='*${env.JOB_NAME}* : POC  *Branch*: ${env.GIT_BRANCH} *Build* : `not OK` *Published* = `no`'
             """)
+                }
             }
         }
     }

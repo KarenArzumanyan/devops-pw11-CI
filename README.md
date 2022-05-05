@@ -48,9 +48,9 @@ sudo docker-compose --version
 sudo apt-get install openjdk-11-jdk
 
 java -version
-openjdk version "11.0.15" 2022-04-19
-OpenJDK Runtime Environment (build 11.0.15+10-Ubuntu-0ubuntu0.20.04.1)
-OpenJDK 64-Bit Server VM (build 11.0.15+10-Ubuntu-0ubuntu0.20.04.1, mixed mode, sharing)
+> openjdk version "11.0.15" 2022-04-19
+> OpenJDK Runtime Environment (build 11.0.15+10-Ubuntu-0ubuntu0.20.04.1)
+> OpenJDK 64-Bit Server VM (build 11.0.15+10-Ubuntu-0ubuntu0.20.04.1, mixed mode, sharing)
 
 wget -q -O - http://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
 sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
@@ -58,7 +58,29 @@ sudo apt-get update
 sudo apt-get install jenkins
 sudo ufw allow 8080
 
+sudo usermod -aG docker jenkins
+chmod 777 /var/run/docker.sock
+
+id jenkins
+> uid=109(jenkins) gid=115(jenkins) groups=115(jenkins),998(docker)
+
 systemctl status jenkins
 http://{Public IP}:8080
 sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+```
+
+5. Create Telegram Bot
+
+Additional information:
+
+[Telegram Bot API](https://core.telegram.org/bots/api)
+
+[Bots: An introduction for developers](https://core.telegram.org/bots#6-botfather)
+
+6. Create Pipeline
+
+Set Parameterized Builds for Telegram Bot send message
+```
+1) TOKEN = 110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw
+2) CHAT_ID = 123
 ```
