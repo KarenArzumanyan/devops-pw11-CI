@@ -7,7 +7,6 @@ pipeline {
                 // git 'https://github.com/KarenArzumanyan/devops-pw11-CI.git'
                 // Show getting file list
                 sh 'ls -l'
-                sh 'cd  devops-pw11-CI'	
             }
         }
         stage('Stage2-DockerRun') {
