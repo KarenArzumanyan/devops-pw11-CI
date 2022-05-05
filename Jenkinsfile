@@ -17,8 +17,10 @@ pipeline {
         }
         stage('Stage3-Test1-Satus200') {
             steps {
-                script {
-                    def response = httpRequest responseHandle: 'NONE', url: 'http://localhost:9889/index.html', wrapAsMultipart: false
+                script {                    
+                    def response = httpRequest 'http://localhost:9889/index.html'
+                    println("Status: "+response.status)
+                    println("Content: "+response.content)
                     if (response.status == 200) {
                         withCredentials([string(credentialsId: 'chatWebid', variable: 'TOKEN'), string(credentialsId: 'chatId', variable: 'CHAT_ID')]) {
                             sh  ("""
@@ -26,7 +28,7 @@ pipeline {
                             """)
                         }
                         return
-             } else if (response.status != 200) {
+                        } else if (response.status != 200) {
                         withCredentials([string(credentialsId: 'chatWebid', variable: 'TOKEN'), string(credentialsId: 'chatId', variable: 'CHAT_ID')]) {
                             sh  ("""
                                      curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='response code not 200'
