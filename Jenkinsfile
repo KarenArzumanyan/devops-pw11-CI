@@ -29,10 +29,9 @@ pipeline {
                           curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='response code not 200'
                         fi
                     '''
-                    }
                 }
             }
-        }
+        }    
         stage('Stage4-Test2-MD5SUM') {
             steps {
                 script {
@@ -69,22 +68,18 @@ pipeline {
                 '''
             }
         }
-    }
+}
     post {
         success {
-            withCredentials([string(credentialsId: 'chatWebid', variable: 'TOKEN'), string(credentialsId: 'chatId', variable: 'CHAT_ID')]) {
-                sh  ("""
+                sh  '''
                 curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='*${env.JOB_NAME}* : POC *Branch*: ${env.GIT_BRANCH} *Build* : OK *Published* = YES'
-            """)
-            }
+                '''
         }
 
         aborted {
-            withCredentials([string(credentialsId: 'chatWebid', variable: 'TOKEN'), string(credentialsId: 'chatId', variable: 'CHAT_ID')]) {
-                sh  ("""
+                sh '''
                 curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='*${env.JOB_NAME}* : POC *Branch*: ${env.GIT_BRANCH} *Build* : `Aborted` *Published* = `Aborted`'
-            """)
-            }
+                '''
         }
         failure {
             steps {
@@ -93,11 +88,9 @@ pipeline {
                     docker container rm devops-pw11
                     docker image rm devops/pw11_nginx
                 '''
-                withCredentials([string(credentialsId: 'chatWebid', variable: 'TOKEN'), string(credentialsId: 'chatId', variable: 'CHAT_ID')]) {
-                    sh  ("""
+                sh  '''
                 curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d parse_mode=markdown -d text='*${env.JOB_NAME}* : POC  *Branch*: ${env.GIT_BRANCH} *Build* : `not OK` *Published* = `no`'
-            """)
-                }
+                '''
             }
         }
     }
