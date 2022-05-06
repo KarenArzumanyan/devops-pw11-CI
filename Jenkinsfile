@@ -19,7 +19,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        status_code=$(curl --write-out %{http_code} --silent --output /dev/null www.energomera.ru)
+                        status_code=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:9889/index.html)
                         echo "Status code: $status_code"
 
                         if [[ $status_code -ge 200 ]]
